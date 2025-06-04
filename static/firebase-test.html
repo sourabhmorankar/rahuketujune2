@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .status { padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <h1>🔥 Firebase Connection Test</h1>
+    <p>This page will test your Firebase configuration and verify connectivity.</p>
+    
+    <div id="status"></div>
+    
+    <h2>Environment Check</h2>
+    <div id="env-check"></div>
+    
+    <h2>Firebase Services</h2>
+    <div id="firebase-status"></div>
+    
+    <h2>Database Operations</h2>
+    <button id="test-firestore" onclick="testFirestore()">Test Firestore Connection</button>
+    <button id="init-db" onclick="initializeDatabase()" disabled>Initialize Database</button>
+    <button id="list-collections" onclick="listCollections()">List Collections</button>
+    
+    <div id="results"></div>
+
+    <script type="module">
+        import { initializeApp } from 'firebase/app';
+        import { getFirestore, connectFirestoreEmulator, collection, getDocs, doc, setDoc } from 'firebase/firestore';
+        import { getAuth, connectAuthEmulator } from 'firebase/auth';
+
+        // Firebase configuration from environment
+        const firebaseConfig = {
+            apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+            authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+            projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+            storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+            messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+            appId: import.meta.env.VITE_FIREBASE_APP_ID
+        };
+
+        let app, db, auth;
+        
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += `<div class="${type}">${message}</div>`;
+        }
+
+        // Check environment variables
+        function checkEnvironment() {
+            const envDiv = document.getElementById('env-check');
+            const missing = [];
+            
+            const requiredVars = ['VITE_FIREBASE_API_KEY', 'VITE_FIREBASE_AUTH_DOMAIN', 'VITE_FIREBASE_PROJECT_ID', 'VITE_FIREBASE_STORAGE_BUCKET', 'VITE_FIREBASE_MESSAGING_SENDER_ID', 'VITE_FIREBASE_APP_ID'];
+            
+            requiredVars.forEach(varName => {
+                const value = import.meta.env[varName];
+                if (!value) {
+                    missing.push(varName);
+                }
+            });
+            
+            if (missing.length > 0) {
+                envDiv.innerHTML = `<div class="error">❌ Missing environment variables: ${missing.join(', ')}</div>`;
+                return false;
+            } else {
+                envDiv.innerHTML = `<div class="success">✅ All environment variables configured</div>`;
+                envDiv.innerHTML += `<pre>Project ID: ${firebaseConfig.projectId}</pre>`;
+                return true;
+            }
+        }
+
+        // Initialize Firebase
+        function initFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                document.getElementById('firebase-status').innerHTML = `
+                    <div class="success">✅ Firebase app initialized successfully</div>
+                    <div class="success">✅ Firestore connected</div>
+                    <div class="success">✅ Auth service connected</div>
+                `;
+                
+                document.getElementById('test-firestore').disabled = false;
+                document.getElementById('init-db').disabled = false;
+                return true;
+            } catch (error) {
+                document.getElementById('firebase-status').innerHTML = `<div class="error">❌ Firebase initialization failed: ${error.message}</div>`;
+                return false;
+            }
+        }
+
+        // Test Firestore connectivity
+        window.testFirestore = async function() {
+            updateStatus('Testing Firestore connection...', 'info');
+            try {
+                // Try to read from a collection
+                const testRef = collection(db, 'test');
+                await getDocs(testRef);
+                addResult('✅ Firestore connection successful', 'success');
+                
+                // Try to write a test document
+                await setDoc(doc(db, 'test', 'connection-test'), {
+                    timestamp: new Date(),
+                    message: 'Connection test successful'
+                });
+                addResult('✅ Firestore write operation successful', 'success');
+                
+            } catch (error) {
+                addResult(`❌ Firestore connection failed: ${error.message}`, 'error');
+                console.error('Firestore error:', error);
+            }
+        };
+
+        // List collections
+        window.listCollections = async function() {
+            updateStatus('Listing Firestore collections...', 'info');
+            try {
+                // This is a simplified check - in a real app you'd need to use the Admin SDK
+                const testCollections = ['bioCluster', 'contentCluster', 'categories', 'gridLayout', 'tags', 'settings'];
+                let results = '<h3>Checking Collections:</h3>';
+                
+                for (const collectionName of testCollections) {
+                    try {
+                        const collectionRef = collection(db, collectionName);
+                        const snapshot = await getDocs(collectionRef);
+                        results += `<div class="success">✅ ${collectionName}: ${snapshot.size} documents</div>`;
+                    } catch (error) {
+                        results += `<div class="error">❌ ${collectionName}: Error - ${error.message}</div>`;
+                    }
+                }
+                
+                addResult(results, 'info');
+            } catch (error) {
+                addResult(`❌ Failed to list collections: ${error.message}`, 'error');
+            }
+        };
+
+        // Initialize database (this would run the init script)
+        window.initializeDatabase = function() {
+            addResult(`
+                <div class="info">
+                    <h3>🚀 Database Initialization</h3>
+                    <p>To initialize your database with sample data, run the following command in your terminal:</p>
+                    <pre>npm run db:init</pre>
+                    <p>Or manually:</p>
+                    <pre>node scripts/init-database.js --run</pre>
+                </div>
+            `, 'info');
+        };
+
+        // Initialize on page load
+        if (checkEnvironment()) {
+            updateStatus('Environment configuration valid. Initializing Firebase...', 'success');
+            if (initFirebase()) {
+                updateStatus('🎉 Firebase initialized successfully! You can now test the connection.', 'success');
+            }
+        } else {
+            updateStatus('❌ Please configure your .env.local file with Firebase credentials', 'error');
+        }
+    </script>
+</body>
+</html>

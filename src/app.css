@@ -1,0 +1,139 @@
+@import 'tailwindcss';
+
+/* Global styles */
+:root {
+  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --color-primary: #3B82F6;
+  --color-secondary: #8B5CF6;
+  --color-accent: #06B6D4;
+  
+  /* Grid animation variables */
+  --grid-animation-duration: 0.3s;
+  --grid-animation-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Card shadows */
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode variables */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-family);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: theme('colors.gray.50');
+  color: theme('colors.gray.900');
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: theme('colors.gray.900');
+    color: theme('colors.gray.100');
+  }
+}
+
+/* Grid-specific styles */
+.bento-grid-container {
+  cursor: grab;
+}
+
+.bento-grid-container:active {
+  cursor: grabbing;
+}
+
+.bento-grid-canvas {
+  pointer-events: none;
+}
+
+.bento-grid-canvas > * {
+  pointer-events: auto;
+}
+
+/* Card transitions */
+.grid-card {
+  transition: 
+    transform var(--grid-animation-duration) var(--grid-animation-easing),
+    box-shadow var(--grid-animation-duration) var(--grid-animation-easing),
+    opacity var(--grid-animation-duration) var(--grid-animation-easing);
+}
+
+/* Performance optimizations */
+.bento-grid-canvas,
+.grid-card {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .grid-card,
+  .bento-grid-canvas {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  :root {
+    --grid-animation-duration: 0s;
+  }
+}
+
+/* Focus styles */
+.grid-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.grid-card.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.grid-card.loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Touch feedback */
+@media (hover: none) and (pointer: coarse) {
+  .grid-card:active {
+    transform: scale(0.98);
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .grid-card {
+    border-width: 2px;
+  }
+  
+  .grid-card:focus {
+    outline-width: 3px;
+  }
+}
