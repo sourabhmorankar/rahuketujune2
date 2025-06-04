@@ -361,3 +361,337 @@ Configuration Options:
 - Performance Monitoring: Continuous monitoring and optimization
 - Alternative Navigation: Provide traditional navigation options as backup
 
+
+**11. Firebase Database Schema**
+    The Firestore database is initialized with the following collections:
+    - `bioCluster`: Stores various interactive cards like 'welcome', 'bio', 'skills', 'experience', 'medals', and 'ask'.
+    - `categories`: Defines categories for projects or content, e.g., 'Cloud Computing', 'DevOps', 'Networking'.
+    - `tags`: Stores tags associated with content, e.g., 'AWS', 'Azure', 'Networking', 'Automation'.
+    - `gridLayout`: Contains the default grid layout for the portfolio, defining the positions and dimensions of cards.
+    - `settings`: Stores site-wide settings like `site_title` and `contact_email`.
+
+    You can learn the database structure in detail from the file `scripts/init-database.js`. You can also use Firebase MCP to access the database and learn about it if you need it. 
+
+**12. SvelteKit Project Infrastructure Design**
+📁 Complete Project Structure
+src/
+├── app.d.ts                     # TypeScript declarations
+├── app.html                     # Main HTML template
+├── hooks.client.ts              # Client-side hooks
+├── hooks.server.ts              # Server-side hooks
+├── service-worker.ts            # Service worker for PWA
+│
+├── lib/                         # Shared library code
+│   ├── components/              # Reusable UI components
+│   │   ├── ui/                  # Base UI components (buttons, inputs, etc.)
+│   │   │   ├── Button.svelte
+│   │   │   ├── Input.svelte
+│   │   │   ├── Modal.svelte
+│   │   │   ├── Tooltip.svelte
+│   │   │   └── LoadingSpinner.svelte
+│   │   │
+│   │   ├── grid/                # Bento grid specific components
+│   │   │   ├── BentoGrid.svelte
+│   │   │   ├── GridCard.svelte
+│   │   │   ├── CardMorph.svelte
+│   │   │   ├── MiniMap.svelte
+│   │   │   ├── SearchOverlay.svelte
+│   │   │   └── QuickActions.svelte
+│   │   │
+│   │   ├── cards/               # Individual card type components
+│   │   │   ├── bio/
+│   │   │   │   ├── BioCard.svelte
+│   │   │   │   ├── BioCardExpanded.svelte
+│   │   │   │   └── TimelineComponent.svelte
+│   │   │   ├── skills/
+│   │   │   │   ├── SkillsCard.svelte
+│   │   │   │   ├── SkillsExpanded.svelte
+│   │   │   │   └── SkillConstellation.svelte
+│   │   │   ├── experience/
+│   │   │   │   ├── ExperienceCard.svelte
+│   │   │   │   ├── ExperienceExpanded.svelte
+│   │   │   │   └── InteractiveMap.svelte
+│   │   │   ├── content/
+│   │   │   │   ├── BlogCard.svelte
+│   │   │   │   ├── BlogExpanded.svelte
+│   │   │   │   ├── CaseStudyCard.svelte
+│   │   │   │   └── AdventureCard.svelte
+│   │   │   └── shared/
+│   │   │       ├── CardThumbnail.svelte
+│   │   │       ├── CardContainer.svelte
+│   │   │       └── ExpandedView.svelte
+│   │   │
+│   │   ├── admin/               # Admin interface components
+│   │   │   ├── AdminLayout.svelte
+│   │   │   ├── ContentEditor.svelte
+│   │   │   ├── GridLayoutEditor.svelte
+│   │   │   ├── MediaManager.svelte
+│   │   │   ├── AnalyticsDashboard.svelte
+│   │   │   └── forms/
+│   │   │       ├── BlogForm.svelte
+│   │   │       ├── BioForm.svelte
+│   │   │       └── CategoryForm.svelte
+│   │   │
+│   │   └── layout/              # Layout components
+│   │       ├── Header.svelte
+│   │       ├── Footer.svelte
+│   │       ├── Navigation.svelte
+│   │       └── SEOHead.svelte
+│   │
+│   ├── stores/                  # Svelte 5 state management
+│   │   ├── grid.svelte.ts       # Grid state (position, zoom, etc.)
+│   │   ├── portfolio.svelte.ts  # Portfolio content state
+│   │   ├── search.svelte.ts     # Search functionality state
+│   │   ├── ui.svelte.ts         # UI state (modals, loading, etc.)
+│   │   ├── auth.svelte.ts       # Authentication state
+│   │   └── analytics.svelte.ts  # Analytics tracking state
+│   │
+│   ├── firebase/                # Firebase integration
+│   │   ├── index.ts             # Firebase initialization
+│   │   ├── firestore.ts         # Firestore utilities
+│   │   ├── auth.ts              # Authentication utilities
+│   │   ├── storage.ts           # Storage utilities
+│   │   └── services/            # Firebase service layers
+│   │       ├── portfolio.ts     # Portfolio data operations
+│   │       ├── content.ts       # Content CRUD operations
+│   │       ├── analytics.ts     # Analytics tracking
+│   │       └── admin.ts         # Admin operations
+│   │
+│   ├── utils/                   # Utility functions
+│   │   ├── grid/                # Grid-specific utilities
+│   │   │   ├── calculations.ts  # Position/zoom calculations
+│   │   │   ├── animations.ts    # Animation helpers
+│   │   │   ├── collision.ts     # Collision detection
+│   │   │   └── viewport.ts      # Viewport management
+│   │   ├── content/             # Content utilities
+│   │   │   ├── markdown.ts      # Markdown processing
+│   │   │   ├── search.ts        # Search algorithms
+│   │   │   ├── filters.ts       # Content filtering
+│   │   │   └── seo.ts           # SEO utilities
+│   │   ├── ui/                  # UI utilities
+│   │   │   ├── animations.ts    # UI animations
+│   │   │   ├── gestures.ts      # Touch/mouse gestures
+│   │   │   ├── responsive.ts    # Responsive utilities
+│   │   │   └── accessibility.ts # A11y helpers
+│   │   └── common/              # Common utilities
+│   │       ├── formatters.ts    # Data formatting
+│   │       ├── validators.ts    # Input validation
+│   │       ├── debounce.ts      # Performance utilities
+│   │       └── constants.ts     # App constants
+│   │
+│   ├── types/                   # TypeScript type definitions
+│   │   ├── portfolio.ts         # Portfolio-specific types
+│   │   ├── grid.ts              # Grid system types
+│   │   ├── content.ts           # Content types
+│   │   ├── ui.ts                # UI component types
+│   │   ├── firebase.ts          # Firebase-related types
+│   │   └── api.ts               # API response types
+│   │
+│   ├── styles/                  # Global styles and themes
+│   │   ├── global.css           # Global CSS styles
+│   │   ├── tailwind.css         # Tailwind CSS imports
+│   │   ├── themes/              # Theme configurations
+│   │   │   ├── light.css
+│   │   │   ├── dark.css
+│   │   │   └── variables.css
+│   │   └── components/          # Component-specific styles
+│   │       ├── grid.css         # Grid system styles
+│   │       ├── cards.css        # Card-specific styles
+│   │       └── animations.css   # Animation keyframes
+│   │
+│   └── assets/                  # Static assets
+│       ├── icons/               # SVG icons
+│       ├── images/              # Placeholder images
+│       └── fonts/               # Custom fonts
+│
+├── routes/                      # SvelteKit routes
+│   ├── +layout.svelte           # Root layout
+│   ├── +layout.server.ts        # Root layout server logic
+│   ├── +page.svelte             # Home page (main portfolio)
+│   ├── +page.server.ts          # Home page server logic
+│   ├── +error.svelte            # Error page
+│   │
+│   ├── (portfolio)/             # Portfolio route group
+│   │   ├── +layout.svelte       # Portfolio-specific layout
+│   │   ├── blog/                # Blog routes
+│   │   │   ├── +page.svelte     # Blog listing
+│   │   │   ├── +page.server.ts  # Blog listing data
+│   │   │   ├── [slug]/          # Individual blog post
+│   │   │   │   ├── +page.svelte
+│   │   │   │   └── +page.server.ts
+│   │   │   └── category/        # Blog categories
+│   │   │       └── [category]/
+│   │   │           ├── +page.svelte
+│   │   │           └── +page.server.ts
+│   │   ├── case-studies/        # Case study routes
+│   │   │   ├── +page.svelte
+│   │   │   ├── +page.server.ts
+│   │   │   └── [slug]/
+│   │   │       ├── +page.svelte
+│   │   │       └── +page.server.ts
+│   │   ├── adventures/          # Adventure/travel routes
+│   │   │   ├── +page.svelte
+│   │   │   ├── +page.server.ts
+│   │   │   └── [slug]/
+│   │   │       ├── +page.svelte
+│   │   │       └── +page.server.ts
+│   │   ├── about/               # Detailed about page
+│   │   │   ├── +page.svelte
+│   │   │   └── +page.server.ts
+│   │   └── contact/             # Contact page
+│   │       ├── +page.svelte
+│   │       ├── +page.server.ts
+│   │       └── +page.form.ts    # Contact form action
+│   │
+│   ├── (admin)/                 # Admin route group
+│   │   ├── +layout.svelte       # Admin layout
+│   │   ├── +layout.server.ts    # Admin auth check
+│   │   ├── dashboard/           # Admin dashboard
+│   │   │   ├── +page.svelte
+│   │   │   └── +page.server.ts
+│   │   ├── content/             # Content management
+│   │   │   ├── +page.svelte     # Content listing
+│   │   │   ├── +page.server.ts
+│   │   │   ├── create/          # Create content
+│   │   │   │   ├── +page.svelte
+│   │   │   │   └── +page.form.ts
+│   │   │   ├── edit/            # Edit content
+│   │   │   │   └── [id]/
+│   │   │   │       ├── +page.svelte
+│   │   │   │       ├── +page.server.ts
+│   │   │   │       └── +page.form.ts
+│   │   │   └── bio/             # Bio cluster management
+│   │   │       ├── +page.svelte
+│   │   │       ├── +page.server.ts
+│   │   │       └── +page.form.ts
+│   │   ├── grid/                # Grid layout management
+│   │   │   ├── +page.svelte
+│   │   │   ├── +page.server.ts
+│   │   │   └── +page.form.ts
+│   │   ├── media/               # Media management
+│   │   │   ├── +page.svelte
+│   │   │   ├── +page.server.ts
+│   │   │   └── upload/
+│   │   │       └── +server.ts   # File upload endpoint
+│   │   ├── analytics/           # Analytics dashboard
+│   │   │   ├── +page.svelte
+│   │   │   └── +page.server.ts
+│   │   └── settings/            # Site settings
+│   │       ├── +page.svelte
+│   │       ├── +page.server.ts
+│   │       └── +page.form.ts
+│   │
+│   ├── api/                     # API endpoints
+│   │   ├── content/             # Content API
+│   │   │   ├── +server.ts       # CRUD operations
+│   │   │   └── [id]/
+│   │   │       └── +server.ts
+│   │   ├── search/              # Search API
+│   │   │   └── +server.ts
+│   │   ├── analytics/           # Analytics tracking
+│   │   │   └── +server.ts
+│   │   ├── upload/              # File upload
+│   │   │   └── +server.ts
+│   │   └── auth/                # Authentication endpoints
+│   │       ├── login/
+│   │       │   └── +server.ts
+│   │       └── logout/
+│   │           └── +server.ts
+│   │
+│   ├── auth/                    # Authentication pages
+│   │   ├── login/
+│   │   │   ├── +page.svelte
+│   │   │   └── +page.form.ts
+│   │   └── callback/            # OAuth callback
+│   │       └── +page.server.ts
+│   │
+│   └── sitemap.xml/             # SEO sitemap
+│       └── +server.ts
+│
+├── static/                      # Static files
+│   ├── images/                  # Static images
+│   │   ├── profile/
+│   │   ├── companies/
+│   │   ├── certs/
+│   │   └── blog/
+│   ├── icons/                   # App icons
+│   ├── fonts/                   # Web fonts
+│   └── robots.txt               # SEO robots file
+│
+├── tests/                       # Test files
+│   ├── unit/                    # Unit tests
+│   ├── integration/             # Integration tests
+│   └── e2e/                     # End-to-end tests
+│
+├── docs/                        # Documentation
+│   ├── components.md            # Component documentation
+│   ├── grid-system.md           # Grid system documentation
+│   └── deployment.md            # Deployment guide
+│
+└── scripts/                     # Build and utility scripts
+    ├── init-database.js         # Database initialization (existing)
+    ├── test-firebase.js         # Firebase testing (existing)
+    ├── build-sitemap.js         # Sitemap generation
+    └── optimize-images.js       # Image optimization
+
+
+🏗️ Key Architectural Decisions
+1. State Management (Svelte 5 Runes)
+
+Use Svelte 5 runes for reactive state management
+Separate stores for different concerns (grid, content, UI, auth)
+Centralized state with reactive derivations
+
+2. Component Architecture
+
+Card System: Modular card components with shared base
+Grid System: Flexible bento grid with drag, zoom, morph capabilities
+Admin Interface: Complete CMS for content management
+Responsive Design: Mobile-first approach with touch gestures
+
+3. Routing Strategy
+
+Route Groups: Organized by purpose (portfolio, admin)
+Dynamic Routes: Slug-based content routing
+API Routes: RESTful endpoints for data operations
+Form Actions: Server-side form handling
+
+4. Performance Optimization
+
+Lazy Loading: Components and content loaded on demand
+Virtual Scrolling: For large grid layouts
+Image Optimization: Responsive images with modern formats
+Service Worker: Offline capabilities and caching
+
+5. Type Safety
+
+Comprehensive Types: Full TypeScript coverage
+Firebase Integration: Typed Firestore operations
+Component Props: Strict prop typing
+
+🎯 Core Features Implementation
+- Interactive Bento Grid
+    - Drag and drop functionality
+    - Pinch-to-zoom and mouse wheel zoom
+    - Smooth animations and transitions
+    - Touch gesture support
+- Card Morphing System
+    - Seamless thumbnail to full-screen transitions
+    - Context preservation during navigation
+    - Loading states and error handling
+- Search and Navigation
+    - Real-time search with fuzzy matching
+    - Interactive mini-map
+    - Quick action panel
+    - Keyboard shortcuts
+- Content Management
+    - WYSIWYG editor for rich content
+    - Media library with drag-and-drop upload
+    - Grid layout visual editor
+    - Analytics and reporting
+- SEO and Performance
+    - Server-side rendering
+    - Dynamic meta tags
+    - Structured data
+    - Progressive web app features
+
